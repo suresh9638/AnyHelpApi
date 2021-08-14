@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>anyhelp.Api</name>
+    </assembly>
+    <members>
+        <member name="M:anyhelp.WebApi.Controllers.BaseController.HandleHttpStatusCodes(anyhelp.Service.Helper.ServiceResponse.ExecutionResult,System.Net.HttpStatusCode)">
+            <summary>
+            This method is implemented to get DRY from two method FromExecutionResult
+            </summary>
+        </member>
+    </members>
+</doc>
