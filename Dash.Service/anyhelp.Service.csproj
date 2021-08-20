@@ -29,10 +29,4 @@
     <ProjectReference Include="..\Dash.Data\anyhelp.Data.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Reference Include="DashTechEmailing">
-      <HintPath>..\Dash.WebApi\DashTechEmailing.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
 </Project>

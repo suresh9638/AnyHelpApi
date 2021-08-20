@@ -24,7 +24,7 @@ namespace anyhelp.WebApi
 {
     public class Startup
     {
-        private const string PortalName = "Chronicle Bits";
+        private const string PortalName = "Any Help";
         private const string Version1 = "V1";
         public Startup(IConfiguration configuration)
         {
@@ -35,6 +35,7 @@ namespace anyhelp.WebApi
 
         public void ConfigureServices(IServiceCollection services)
         {
+            AppConfiguration appConfiguration = new AppConfiguration();
             //IConfiguration appSettingsSection = Configuration.GetSection("AppSettings");
             //services.Configure<AppSettings>(appSettingsSection);
             //services.AddSession(options => {
@@ -42,7 +43,7 @@ namespace anyhelp.WebApi
             //});
             //AppSettings appSettings = appSettingsSection.Get<AppSettings>();
             services.AddDbContext<anyhelpContext>(options =>
-                                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                                 options.UseSqlServer(appConfiguration.SqlConnectonString));
             services.AddSwaggerGen(options =>
             {
                 options.SwaggerDoc(Version1, new Microsoft.OpenApi.Models.OpenApiInfo
@@ -193,20 +194,22 @@ namespace anyhelp.WebApi
                 c.DisplayRequestDuration();
             });
 
-           
-            app.UseStaticFiles(new StaticFileOptions()
-            {
-                FileProvider = new PhysicalFileProvider(
+            if(Directory.Exists(Path.Combine(Directory.GetCurrentDirectory(), @"Document")))
+                    {
+                app.UseStaticFiles(new StaticFileOptions()
+                {
+                    FileProvider = new PhysicalFileProvider(
            Path.Combine(Directory.GetCurrentDirectory(), @"Document")),
-                RequestPath = new PathString("/Document")
-            });
+                    RequestPath = new PathString("/Document")
+                });
 
-            app.UseDirectoryBrowser(new DirectoryBrowserOptions()
-            {
-                FileProvider = new PhysicalFileProvider(
-           Path.Combine(Directory.GetCurrentDirectory(), @"Document")),
-                RequestPath = new PathString("/Document")
-            });
+                app.UseDirectoryBrowser(new DirectoryBrowserOptions()
+                {
+                    FileProvider = new PhysicalFileProvider(
+               Path.Combine(Directory.GetCurrentDirectory(), @"Document")),
+                    RequestPath = new PathString("/Document")
+                });
+            }
 
 
         }

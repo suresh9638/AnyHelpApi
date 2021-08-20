@@ -2,9 +2,8 @@
 {
     public class TokenDetail
     {
-        public string nameid { get; set; }
-        public string uniqueid { get; set; }
-        public string Isadmin { get; set; }
+      
+        public string mobilenumber { get; set; }
 
         public int nbf { get; set; }
         public int exp { get; set; }

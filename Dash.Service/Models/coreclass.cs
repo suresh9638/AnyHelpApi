@@ -19,6 +19,8 @@ using System.IO;
 using System.Security.Principal;
 using System.Security.AccessControl;
 using System.Reflection.Metadata;
+using System.Net.Mail;
+using System.Net;
 
 namespace anyhelp.Service.Models
 {
@@ -105,7 +107,7 @@ namespace anyhelp.Service.Models
         }
 
 
-        public static string GenerateToken(string emailid,bool isadmin)
+        public static string GenerateToken(string mobilenumber)
         {
 
             AppConfiguration appsetting = new AppConfiguration();
@@ -126,9 +128,9 @@ namespace anyhelp.Service.Models
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.NameIdentifier, emailid.ToString()),
-                     new Claim("uniqueid", Guid.NewGuid().ToString()),
-                     new Claim("Isadmin", Convert.ToString( isadmin)),
+                    new Claim("mobilenumber", mobilenumber.ToString()),
+                   
+                    
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(expiryInMinutes),
                 Issuer = myIssuer,
@@ -147,37 +149,38 @@ namespace anyhelp.Service.Models
         {
             try
             {
-                var tokendetail = token.Split('.')[1];
-                string tokendecode = coreclass.Base64Decode(tokendetail);
+                //var tokendetail = token.Split('.')[1];
+                //string tokendecode = coreclass.Base64Decode(tokendetail);
 
-                TokenDetail tddata = JsonConvert.DeserializeObject<TokenDetail>(tokendecode);
+                //TokenDetail tddata = JsonConvert.DeserializeObject<TokenDetail>(tokendecode);
+                //AppConfiguration appsetting = new AppConfiguration();
+
+                //string response = "true";
+                //try
+                //{
+                //    string EndPoint = appsetting.APIUrl + "session/get-cache?key=" + tddata.uniqueid;
+                //    var httpClientHandler = new HttpClientHandler();
+                //    httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
+                //    {
+                //        return true;
+                //    };
+                //    var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(EndPoint) };
+
+
+
+
+                //    HttpResponseMessage result = await httpClient.GetAsync(EndPoint);
+                //    if (result.IsSuccessStatusCode)
+                //    {
+                //         response = await result.Content.ReadAsStringAsync();
+                //    }
+                //}
+                //catch(Exception ex) { ExceptionLogging.SendErrorToText(ex); }
+                //if (Convert.ToBoolean(response))
+                //{
+                //    return false;
+                //}
                 AppConfiguration appsetting = new AppConfiguration();
-                
-                string response = "true";
-                try
-                {
-                    string EndPoint = appsetting.APIUrl + "session/get-cache?key=" + tddata.uniqueid;
-                    var httpClientHandler = new HttpClientHandler();
-                    httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
-                    {
-                        return true;
-                    };
-                    var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(EndPoint) };
-
-
-                    
-
-                    HttpResponseMessage result = await httpClient.GetAsync(EndPoint);
-                    if (result.IsSuccessStatusCode)
-                    {
-                         response = await result.Content.ReadAsStringAsync();
-                    }
-                }
-                catch(Exception ex) { ExceptionLogging.SendErrorToText(ex); }
-                if (Convert.ToBoolean(response))
-                {
-                    return false;
-                }
                 string securityKey = appsetting.securityKey;
                 string validIssuer = appsetting.validIssuer;
                 string validAudience = appsetting.validAudience;
@@ -216,49 +219,98 @@ namespace anyhelp.Service.Models
                 return false; }
         }
 
-        //public static string SendMailWithoutAttachment(string email, string body, string subject)
-        //{
-        //    try
-        //    {
-        //        AppConfiguration appsetting = new AppConfiguration();
-        //        EmailSetup emailSetup = new EmailSetup
-        //        {
+        public static string Encrypt(string text)
+        {
+            try
+            {
+                AppConfiguration appConfiguration = new AppConfiguration();
+                string textToEncrypt = text;
+               string ToReturn = "";              
+                byte[] secretkeyByte = { };
+                secretkeyByte = System.Text.Encoding.UTF8.GetBytes(appConfiguration.privatekey);
+                byte[] publickeybyte = { };
+                publickeybyte = System.Text.Encoding.UTF8.GetBytes(appConfiguration.publickey);
+                MemoryStream ms = null;
+                CryptoStream cs = null;
+                byte[] inputbyteArray = System.Text.Encoding.UTF8.GetBytes(textToEncrypt);
+                using (DESCryptoServiceProvider des = new DESCryptoServiceProvider())
+                {
+                    ms = new MemoryStream();
+                    cs = new CryptoStream(ms, des.CreateEncryptor(publickeybyte, secretkeyByte), CryptoStreamMode.Write);
+                    cs.Write(inputbyteArray, 0, inputbyteArray.Length);
+                    cs.FlushFinalBlock();
+                    ToReturn = Convert.ToBase64String(ms.ToArray());
+                }
+                return ToReturn;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex.InnerException);
+            }
+        }
 
-                   
-        //        IsFreeEmail = true,
-        //            SMTPServer = appsetting.SmtpHost,
-        //            PortId =Convert.ToInt32( appsetting.SmtpPort),
-        //            IsEnableSsl = Convert.ToBoolean( appsetting.enableSsl),
-        //            IsUseDefaultCredentials = true,
-        //            MailUserName = appsetting.SmtpUsername,
-        //            MailUserPassword = appsetting.SmtpPassword,
-        //            FromEmailId = appsetting.SmtpUsername,
-        //            FromEmailHeader = appsetting.SmtpUsername,
-        //            ToEmailId = email,
-        //            MailSubject = subject,
-        //            IsBodyHtml = true,
-        //            MailBody = body,
-                   
-        //            IsAutoLogFileName = true,
-        //            ValidateEmail=true
-        //        };
-        //        Emailing emailing = new Emailing();
-        //        var mailResult = emailing.SendEmailUsingFreeMailServer(emailSetup);
-        //        if (mailResult != null)
-        //        {
-        //            return mailResult.MailMessage.ToString();
-        //                           }
-        //        else
-        //        {
-        //            return "Sending mail failure!";
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        ExceptionLogging.SendErrorToText(ex);
-        //        return  ex.Message.ToString();
-        //    }
-        //}
+
+        public static string Decrypt(string text)
+        {
+            try
+            {
+                AppConfiguration appConfiguration = new AppConfiguration();
+                string textToDecrypt = text;
+                string ToReturn = "";
+              
+                byte[] privatekeyByte = { };
+                privatekeyByte = System.Text.Encoding.UTF8.GetBytes(appConfiguration.privatekey);
+                byte[] publickeybyte = { };
+                publickeybyte = System.Text.Encoding.UTF8.GetBytes(appConfiguration.publickey);
+                MemoryStream ms = null;
+                CryptoStream cs = null;
+                byte[] inputbyteArray = new byte[textToDecrypt.Replace(" ", "+").Length];
+                inputbyteArray = Convert.FromBase64String(textToDecrypt.Replace(" ", "+"));
+                using (DESCryptoServiceProvider des = new DESCryptoServiceProvider())
+                {
+                    ms = new MemoryStream();
+                    cs = new CryptoStream(ms, des.CreateDecryptor(publickeybyte, privatekeyByte), CryptoStreamMode.Write);
+                    cs.Write(inputbyteArray, 0, inputbyteArray.Length);
+                    cs.FlushFinalBlock();
+                    Encoding encoding = Encoding.UTF8;
+                    ToReturn = encoding.GetString(ms.ToArray());
+                }
+                return ToReturn;
+            }
+            catch (Exception ae)
+            {
+                throw new Exception(ae.Message, ae.InnerException);
+            }
+        }
+        public static string SendMailWithoutAttachment(string email, string body, string subject)
+        {
+            try
+            {
+                AppConfiguration appConfiguration = new AppConfiguration();
+                var smtpClient = new SmtpClient(appConfiguration.SmtpHost)
+                {
+                    Port = Convert.ToInt32(appConfiguration.SmtpPort),
+                    Credentials = new NetworkCredential(appConfiguration.SmtpUsername, appConfiguration.SmtpPassword),
+                    EnableSsl = Convert.ToBoolean(appConfiguration.enableSsl),
+                };
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(appConfiguration.SmtpFrom),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true,
+                };
+                mailMessage.To.Add(email);
+
+                smtpClient.Send(mailMessage);
+                return "Send success.";
+            }
+            catch
+            {
+                return "Send failure!";
+            }
+           
+        }
 
         //public static  string getadminimage(string image)
         //{
@@ -268,7 +320,7 @@ namespace anyhelp.Service.Models
         //        AppConfiguration appsetting = new AppConfiguration();
 
         //        string path = (appsetting.uploadfilepath + "/admin/"+image).ToLower();
-               
+
 
         //        if (File.Exists(path))
         //        {
@@ -286,7 +338,7 @@ namespace anyhelp.Service.Models
         //}
         //public static string GetUserCoverImage(long UserId,string image)
         //{
-            
+
         //        AppConfiguration appsetting = new AppConfiguration();
 
         //    string path = (appsetting.uploadfilepath + "/" + UserId.ToString() + "/coverphoto/" + image).ToLower();
@@ -295,7 +347,7 @@ namespace anyhelp.Service.Models
 
 
         //    Uri uriResult;
-           
+
         //    if (File.Exists(path))
         //        {
         //            return url;
@@ -304,7 +356,7 @@ namespace anyhelp.Service.Models
         //        {
         //            return null;
         //        }
-               
+
         //}
         //public static string GetUserProfileImage(long UserId, string image)
         //{

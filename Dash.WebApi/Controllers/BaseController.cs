@@ -19,7 +19,7 @@ namespace anyhelp.WebApi.Controllers
             {
                 return Ok(serviceResponse);
             }
-            return HandleHttpStatusCodes(serviceResponse, serviceResponse.StatusCode);
+            return HandleHttpStatusCodes(serviceResponse, serviceResponse.StatusCode, serviceResponse.Success);
         }
         protected IActionResult GenerateResponse(ExecutionResult result, HttpStatusCode statusCode = HttpStatusCode.BadRequest)
         {
@@ -27,29 +27,29 @@ namespace anyhelp.WebApi.Controllers
             {
                 return Ok(result);
             }
-            return HandleHttpStatusCodes(result, statusCode);
+            return HandleHttpStatusCodes(result, statusCode, result.Success);
         }
 
         /// <summary>
         /// This method is implemented to get DRY from two method FromExecutionResult
         /// </summary>
-        private IActionResult HandleHttpStatusCodes(ExecutionResult result, HttpStatusCode statusCode)
+        private IActionResult HandleHttpStatusCodes(ExecutionResult result, HttpStatusCode statusCode,bool Success)
         {
             return statusCode switch
             {
                 HttpStatusCode.Unauthorized => Unauthorized(result),
                 HttpStatusCode.Forbidden => Forbid(),
-                _ => BadRequest(result.Errors),
+                _ => BadRequest(result),
             };
         }
 
-        private IActionResult HandleHttpStatusCodes<T>(ServiceResponseGeneric<T> result, HttpStatusCode statusCode)
+        private IActionResult HandleHttpStatusCodes<T>(ServiceResponseGeneric<T> result, HttpStatusCode statusCode, bool Success)
         {
             return statusCode switch
             {
                 HttpStatusCode.Unauthorized => Unauthorized(result),
                 HttpStatusCode.Forbidden => Forbid(),
-                _ => BadRequest(result.Errors),
+                _ => BadRequest(result),
             };
         }
         protected IActionResult FromExecutionResult<T>(ExecutionResult<T> result, HttpStatusCode statusCode = HttpStatusCode.BadRequest)
@@ -58,7 +58,7 @@ namespace anyhelp.WebApi.Controllers
             {
                 return Ok(result);
             }
-            return HandleHttpStatusCodes(result, statusCode);
+            return HandleHttpStatusCodes(result, statusCode,result.Success);
         }
 
 

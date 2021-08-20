@@ -24,6 +24,8 @@ namespace anyhelp.Data.DataContext
         public string SmtpPort { get; set; }
 
         public string enableSsl { get; set; }
+        public string publickey { get; set; }
+        public string privatekey { get; set; }
 
 
 
@@ -37,8 +39,9 @@ namespace anyhelp.Data.DataContext
             SqlConnectonString = appSettings.Value;
             PortalUrl = root.GetSection("AppSettings:PortalUrl").Value;
             APIUrl = root.GetSection("AppSettings:APIUrl").Value;
-          
 
+            privatekey = root.GetSection("AppSettings:privatekey").Value;
+            publickey = root.GetSection("AppSettings:publickey").Value;
             securityKey = root.GetSection("AppSettings:TokenSettings:securityKey").Value;
 
             validIssuer = root.GetSection("AppSettings:TokenSettings:validIssuer").Value;

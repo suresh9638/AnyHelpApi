@@ -4,7 +4,7 @@
         <name>anyhelp.Api</name>
     </assembly>
     <members>
-        <member name="M:anyhelp.WebApi.Controllers.BaseController.HandleHttpStatusCodes(anyhelp.Service.Helper.ServiceResponse.ExecutionResult,System.Net.HttpStatusCode)">
+        <member name="M:anyhelp.WebApi.Controllers.BaseController.HandleHttpStatusCodes(anyhelp.Service.Helper.ServiceResponse.ExecutionResult,System.Net.HttpStatusCode,System.Boolean)">
             <summary>
             This method is implemented to get DRY from two method FromExecutionResult
             </summary>

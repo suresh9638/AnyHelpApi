@@ -1,6 +1,7 @@
 ﻿
 using anyhelp.Data.DataContext;
 using anyhelp.Service.Interface;
+using anyhelp.Service.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -13,10 +14,10 @@ namespace anyhelp.WebApi.Controllers
     {
         private readonly IUserService _userService;
 
-        //public UserController(IUserService userService)
-        //{
-        //    _userService = userService;
-        //}
+        public UserController(IUserService userService)
+        {
+            _userService = userService;
+        }
         //[HttpGet]
         //[Route("GetUsers")]
         //public IActionResult GetUsers()
@@ -37,13 +38,29 @@ namespace anyhelp.WebApi.Controllers
         //    return GenerateResponse( _userService.UserLogout(UserId));
         //}
 
-        //[HttpGet]
-        //[Route("AdminLogin")]
-        //public async Task<IActionResult> LoginForAdmin(string EmailId, string Password)
-        //{
+        [HttpGet]
+        [Route("GetAllInquiry")]
+        public async Task<IActionResult> GetAllInquiry()
+        {
 
-        //    return GenerateResponse(await _RegistrationService.AdminLogin(EmailId, Password));
+            return GenerateResponse(await _userService.GetAllInquiry());
 
-        //}
+        }
+        [HttpGet]
+        [Route("GetAllInquiry1")]
+        public async Task<IActionResult> GetAllInquiry1()
+        {
+
+            return GenerateResponse(await _userService.GetAllInquiry1());
+
+        }
+        [HttpPost]
+        [Route("CreateToken")]
+        public async Task<IActionResult> CreateToken(UserCreateTokenModel Model)
+        {
+
+            return GenerateResponse(await _userService.CreateToken(Model));
+
+        }
     }
 }

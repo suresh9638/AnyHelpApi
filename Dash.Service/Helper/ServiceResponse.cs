@@ -84,6 +84,7 @@ namespace anyhelp.Service.Helper
 
             public ErrorInfo(HttpStatusCode statusCode, string errorMessage)
             {
+                
                 StatusCode = statusCode;
                 ErrorMessage = errorMessage;
             }
@@ -92,6 +93,7 @@ namespace anyhelp.Service.Helper
 
             public string ErrorMessage { get; set; }
 
+            
             public override string ToString()
             {
                 return string.Format("{0}. Key: '{1}', ErrorMessage: '{2}'", base.ToString(), StatusCode, ErrorMessage);
@@ -152,6 +154,7 @@ namespace anyhelp.Service.Helper
 
         public class ServiceResponseExceptionHandle : Exception
         {
+
             public string Exception { get; set; }
             public HttpStatusCode HttpStatusCode { get; set; }
             public ServiceResponseExceptionHandle()
@@ -204,6 +207,7 @@ namespace anyhelp.Service.Helper
             /// </summary>
             public ExecutionResult(IEnumerable<ErrorInfo> errors) : this((ExecutionResult)null)
             {
+                
                 foreach (ErrorInfo errorInfo in errors)
                 {
                     Errors.Add(errorInfo);
@@ -234,6 +238,7 @@ namespace anyhelp.Service.Helper
                 }
                 else
                 {
+                   
                     Errors = new List<ErrorInfo>();
                     Messages = new List<InfoMessage>();
                 }
@@ -255,7 +260,7 @@ namespace anyhelp.Service.Helper
             /// <summary>
             /// Errors collection
             /// </summary>
-            public IList<ErrorInfo> Errors { get; }
+            public IList<ErrorInfo> Errors { get; set; }
 
             /// <summary>
             /// Info messages collection
@@ -276,6 +281,7 @@ namespace anyhelp.Service.Helper
             /// <summary>
             /// Default constructor
             /// </summary>
+            /// 
             public ExecutionResult() : this((ExecutionResult)null)
             { }
 
@@ -297,7 +303,7 @@ namespace anyhelp.Service.Helper
                     Output = r.Output;
                 }
             }
-
+           
             public ExecutionResult(ErrorInfo error) : this(new[] { error })
             { }
 
@@ -319,8 +325,37 @@ namespace anyhelp.Service.Helper
                     Messages.Add(message);
                 }
             }
+            public ExecutionResult(Func<T> result)
+            {
+                try
+                {
+
+                    Output = result.Invoke();
+                }
+                catch (ServiceResponseExceptionHandle ex)
+                {
+                   
+                    Errors.Add(new ErrorInfo { ErrorMessage = ex.Exception, StatusCode = ex.HttpStatusCode });
+                    
+                   
+                   
+                }
+                catch (Exception ex)
+                {
+                   
+                    Log.Error($"StackTrace = {ex.StackTrace}, " +
+                               $"Message = {ex.Message}, " +
+                                $" InnerException = {ex.InnerException}, " +
+                                $" ex.InnerException.Message = {ex.InnerException?.Message} ");
+                    Errors.Add(new ErrorInfo { ErrorMessage = ex.Message, StatusCode = HttpStatusCode.BadRequest });
+                   
+
+                    ExceptionLogging.SendErrorToText(ex);
+                }
+            }
 
             public T Output { get; set; }
+           
         }
 
 
@@ -330,6 +365,7 @@ namespace anyhelp.Service.Helper
             /// <summary>
             /// Default constructor
             /// </summary>
+            
             public InfoMessage() : this(string.Empty, string.Empty)
             { }
 
@@ -340,6 +376,8 @@ namespace anyhelp.Service.Helper
             /// <summary>
             /// Main constructor
             /// </summary>
+            /// 
+
             public InfoMessage(string key, string message)
             {
                 Title = key;

@@ -6,7 +6,7 @@ using anyhelp.Data.DataContext;
 using anyhelp.Service.Helper;
 using anyhelp.Service.Interface;
 using anyhelp.Service.Models;
-
+using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
@@ -17,6 +17,9 @@ using System.Threading.Tasks;
 using static anyhelp.Service.Helper.ServiceResponse;
 using Microsoft.AspNetCore.SignalR;
 using NET5SignalR.Models;
+using anyhelp.Data.Entities;
+using RestSharp;
+using System.Net.Http;
 
 namespace anyhelp.Service.Service
 {
@@ -24,15 +27,15 @@ namespace anyhelp.Service.Service
     {
 
         private readonly anyhelpContext db;
-      
+
         private readonly IMapper _mapper;
         private readonly IOptions<SqlConnectionFactory> _sqlConnectionFactory;
         private readonly IHubContext<NotificationHub> _notificationHub;
 
-       
-        public UserService(anyhelpContext Context,  IMapper mapper, IOptions<SqlConnectionFactory> sqlConnectionFactory, IHubContext<NotificationHub> notificationHub)
+
+        public UserService(anyhelpContext Context, IMapper mapper, IOptions<SqlConnectionFactory> sqlConnectionFactory, IHubContext<NotificationHub> notificationHub)
         {
-            db = Context;            
+            db = Context;
             _mapper = mapper;
             _sqlConnectionFactory = sqlConnectionFactory;
             _notificationHub = notificationHub;
@@ -57,6 +60,75 @@ namespace anyhelp.Service.Service
         {
             throw new System.NotImplementedException();
         }
+        public async Task<ExecutionResult<List<TblBuyerinquiry>>> GetAllInquiry()
+        {
+            return new ExecutionResult<List<TblBuyerinquiry>>(() =>
+                {
+
+                    var tblBuyerList = _sqlConnectionFactory.Value.CreateConnection().Query<TblBuyerinquiry>("select * from tblbuyerinquiry").ToList();
+                    var s = coreclass.SendMailWithoutAttachment("sureshvadadodiya@gmail.com", "test", "test");
+                   // var e = coreclass.Encrypt("9638407536");
+                   // var d = coreclass.Decrypt(e);
+
+                    return  tblBuyerList;
+
+
+                });
+        }
+
+        public async Task<ExecutionResult<string>> CreateToken(UserCreateTokenModel Model)
+        {
+            return new  ExecutionResult<string>(() =>
+            {
+                //var client = new RestClient("http://2factor.in/API/V1/354d27f2-fdd2-11eb-a13b-0200cd936042/SMS/VERIFY/"+ Model.sessionId + "/"+ Model.otp + "");
+                //var request = new RestRequest(Method.GET);
+                //request.AddHeader("content-type", "application/x-www-form-urlencoded");
+                //var restResponse = await client.ExecuteAsync(request);
+                string EndPoint = "https://2factor.in/API/V1/354d27f2-fdd2-11eb-a13b-0200cd936042/SMS/VERIFY/" + Model.sessionId + "/" + Model.otp + "";
+
+                var httpClientHandler = new HttpClientHandler();
+                httpClientHandler.ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) =>
+                {
+                    return true;
+                };
+                var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(EndPoint) };
+
+                var response = string.Empty;
+               
+                HttpResponseMessage result =  httpClient.GetAsync(EndPoint).GetAwaiter().GetResult();
+                if (result.IsSuccessStatusCode)
+                {
+                    response =  result.Content.ReadAsStringAsync().GetAwaiter().GetResult(); ;
+                }
+
+
+                string encrypt = coreclass.Encrypt(Model.mobileNumber);
+
+                string token = coreclass.GenerateToken(encrypt);
+
+
+
+                return  token;
+
+
+            });
+        }
+        public async Task<ExecutionResult<List<TblBuyerinquiry>>> GetAllInquiry1()
+        {
+            return new ExecutionResult<List<TblBuyerinquiry>>(() =>
+            {
+
+                var tblBuyerList = _sqlConnectionFactory.Value.CreateConnection().Query<TblBuyerinquiry>("select buyerinquiry_id as  buyerinquiryid, buyerinquiry_fullname as  BuyerinquiryFullname, buyerinquiry_phoneno as BuyerinquiryPhoneno,buyerinquiry_categoryid as  BuyerinquiryCategoryid,buyerinquiry_latitude as  BuyerinquiryLatitude,buyerinquiry_longitude as BuyerinquiryLongitude,buyerinquiry_isdelete as BuyerinquiryIsdelete from tbl_buyerinquiry").ToList();
+
+                throw new Exception("test error");
+
+                return tblBuyerList;
+
+
+            });
+        }
+
+        
         //public async Task<ExecutionResult<AdminUserModel>> AdminLogin(string emailId, string password)
         //{
         //    try
