@@ -1,25 +1,20 @@
 ﻿using AutoMapper;
-using anyhelp.Data;
-using anyhelp.Data.ADO;
 using anyhelp.Data.DataContext;
-
-using anyhelp.Service.Helper;
 using anyhelp.Service.Interface;
 using anyhelp.Service.Models;
 using Dapper;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using static anyhelp.Service.Helper.ServiceResponse;
 using Microsoft.AspNetCore.SignalR;
 using NET5SignalR.Models;
 using anyhelp.Data.Entities;
-using RestSharp;
 using System.Net.Http;
+using System.Data;
+using Newtonsoft.Json;
 
 namespace anyhelp.Service.Service
 {
@@ -40,39 +35,72 @@ namespace anyhelp.Service.Service
             _sqlConnectionFactory = sqlConnectionFactory;
             _notificationHub = notificationHub;
         }
-        public ServiceResponseGeneric<List<UserServiceModel>> Create()
+      
+        public async Task<ExecutionResult<NotificationModel>> GetAllNotification(string id_token)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public ServiceResponseGeneric<List<UserServiceModel>> GetAll()
-        {
-
-            throw new System.NotImplementedException();
-        }
-
-        public ServiceResponseGeneric<UserServiceModel> GetById(int id)
-        {
-            throw new System.NotImplementedException();
-        }
-
-        public ServiceResponseGeneric<List<UserServiceModel>> Update()
-        {
-            throw new System.NotImplementedException();
-        }
-        public async Task<ExecutionResult<List<TblBuyerinquiry>>> GetAllInquiry()
-        {
-            return new ExecutionResult<List<TblBuyerinquiry>>(() =>
+            return new ExecutionResult<NotificationModel>(() =>
                 {
+                    if (!string.IsNullOrEmpty(id_token))
+                    {
+                        string encodedate = "";
+                        if (id_token.Split('.').Length > 1)
+                        {
+                            encodedate = coreclass.Base64Decode(id_token.Split('.')[1]);
 
-                    var tblBuyerList = _sqlConnectionFactory.Value.CreateConnection().Query<TblBuyerinquiry>("select * from tblbuyerinquiry").ToList();
-                    var s = coreclass.SendMailWithoutAttachment("sureshvadadodiya@gmail.com", "test", "test");
-                   // var e = coreclass.Encrypt("9638407536");
-                   // var d = coreclass.Decrypt(e);
+                            TokenDetails tokenDetails = new TokenDetails();
 
-                    return  tblBuyerList;
+                            tokenDetails = JsonConvert.DeserializeObject<TokenDetails>(encodedate);
+
+                            if (!string.IsNullOrEmpty(tokenDetails.phoneno))
+                            {
+                                NotificationModel notificationModel = new NotificationModel();
+                                List<BuyernotificationModel> buyernotificationList = new List<BuyernotificationModel>();
+                                TblSellerregister tblSellerregister = new TblSellerregister();
+                                List<SellernotificationModel> SellernotificationList = new List<SellernotificationModel>();
+                                List<TblBuyerinquiry> tblBuyerinquiryList = new List<TblBuyerinquiry>();
+
+                                var dictionaryParameters = new Dictionary<string, object>
+            {
+              { "@phoneno", tokenDetails.phoneno }  }
+                    ;
+                                var parameters = new DynamicParameters(dictionaryParameters);
+                                var multipleObject = _sqlConnectionFactory.Value.CreateConnection().QueryMultiple("Sp_Get_AllNotifications", parameters, commandType: CommandType.StoredProcedure);
+
+                                buyernotificationList = multipleObject.Read<BuyernotificationModel>().ToList();
+                                tblSellerregister = multipleObject.Read<TblSellerregister>().FirstOrDefault();
+                                SellernotificationList = multipleObject.Read<SellernotificationModel>().ToList();
+                                tblBuyerinquiryList = multipleObject.Read<TblBuyerinquiry>().ToList();
 
 
+                                tblBuyerinquiryList.ForEach(a => {
+                                    a.BuyerinquiryPhoneno = coreclass.Decrypt(a.BuyerinquiryPhoneno);
+                                });
+
+                                buyernotificationList.ForEach(a => {
+                                    a.SellerPhone = coreclass.Decrypt(a.SellerPhone);
+                                });
+                                SellernotificationList.ForEach(a => {
+                                    a.Buyerinquiry = tblBuyerinquiryList.FirstOrDefault(v=>v.BuyerinquiryId==a.SellernotificationInqueryid);
+                                });
+                                if (tblSellerregister != null)
+                                {
+                                    tblSellerregister.SellerregisterPhoneno = coreclass.Decrypt(tblSellerregister.SellerregisterPhoneno);
+                                }
+                                notificationModel.IsSeller = Convert.ToBoolean(tokenDetails.isseller);
+                                notificationModel.SellernotificationModelList = SellernotificationList;
+                                notificationModel.BuyernotificationModelList = buyernotificationList;
+                                notificationModel.tblSellerregister = tblSellerregister;
+                                //var tblBuyerList = _sqlConnectionFactory.Value.CreateConnection().Query<TblBuyerinquiry>("select * from tblbuyerinquiry").ToList();
+                                // //var s = coreclass.SendMailWithoutAttachment("sureshvadadodiya@gmail.com", "test", "test");
+                                // var e = coreclass.Encrypt("7874531931");
+                                //// var d = coreclass.Decrypt(e);
+
+                                return notificationModel;
+
+                            }
+                        }
+                    }
+                    return null;
                 });
         }
 
@@ -94,35 +122,57 @@ namespace anyhelp.Service.Service
                 var httpClient = new HttpClient(httpClientHandler) { BaseAddress = new Uri(EndPoint) };
 
                 var response = string.Empty;
-               
-                HttpResponseMessage result =  httpClient.GetAsync(EndPoint).GetAwaiter().GetResult();
+
+                HttpResponseMessage result = httpClient.GetAsync(EndPoint).GetAwaiter().GetResult();
                 if (result.IsSuccessStatusCode)
                 {
-                    response =  result.Content.ReadAsStringAsync().GetAwaiter().GetResult(); ;
+                    response = result.Content.ReadAsStringAsync().GetAwaiter().GetResult(); ;
                 }
 
+                twofactorModel factor = JsonConvert.DeserializeObject<twofactorModel>(response);
+                string token = null;
+                if (factor.Details.ToLower().Contains("otp matched"))
+                { 
 
-                string encrypt = coreclass.Encrypt(Model.mobileNumber);
+                string encrypt = coreclass.Encrypt(Model.phoneno);
 
-                string token = coreclass.GenerateToken(encrypt);
+               
+                var dictionaryParameters = new Dictionary<string, object>
+            {
+              { "@phoneno", encrypt } }
+                            ;
+                var parameters = new DynamicParameters(dictionaryParameters);
 
 
+                var Sellerregister = _sqlConnectionFactory.Value.CreateConnection().Query<TblSellerregister>("Sp_Get_Sellerregisterinfo", parameters, commandType: CommandType.StoredProcedure).Count();
+
+
+                token = coreclass.GenerateToken(encrypt, Sellerregister == 0 ? false : true);
+
+            }
 
                 return  token;
 
 
             });
         }
-        public async Task<ExecutionResult<List<TblBuyerinquiry>>> GetAllInquiry1()
+        public async Task<ExecutionResult<List<Category>>> GetSearchCaltegory(string Search)
         {
-            return new ExecutionResult<List<TblBuyerinquiry>>(() =>
+            return new ExecutionResult<List<Category>>(() =>
             {
 
-                var tblBuyerList = _sqlConnectionFactory.Value.CreateConnection().Query<TblBuyerinquiry>("select buyerinquiry_id as  buyerinquiryid, buyerinquiry_fullname as  BuyerinquiryFullname, buyerinquiry_phoneno as BuyerinquiryPhoneno,buyerinquiry_categoryid as  BuyerinquiryCategoryid,buyerinquiry_latitude as  BuyerinquiryLatitude,buyerinquiry_longitude as BuyerinquiryLongitude,buyerinquiry_isdelete as BuyerinquiryIsdelete from tbl_buyerinquiry").ToList();
+                var dictionaryParameters = new Dictionary<string, object>
+            {
+              { "@search", Search } }
+                            ;
+                var parameters = new DynamicParameters(dictionaryParameters);
 
-                throw new Exception("test error");
 
-                return tblBuyerList;
+                var CategoryList = _sqlConnectionFactory.Value.CreateConnection().Query<Category>("Sp_GetCategory", parameters, commandType: CommandType.StoredProcedure).ToList();
+
+
+
+                return CategoryList;
 
 
             });

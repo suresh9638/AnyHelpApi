@@ -1,30 +1,18 @@
 ﻿using anyhelp.Data.DataContext;
-using DashTechEmailing;
-using DashTechEmailing.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-
-using RestSharp;
-using Newtonsoft.Json;
 using System.Threading.Tasks;
-using System.Net.Http;
 using System.IO;
-using System.Security.Principal;
-using System.Security.AccessControl;
-using System.Reflection.Metadata;
 using System.Net.Mail;
 using System.Net;
 
 namespace anyhelp.Service.Models
 {
-     public static class coreclass  
+    public static class coreclass
     {
         public static string GetMD5HashData(string data)
         {
@@ -48,7 +36,7 @@ namespace anyhelp.Service.Models
 
         }
 
-        
+
         public static string Base64Decode(string base64EncodedText)
         {
             if (String.IsNullOrEmpty(base64EncodedText))
@@ -98,25 +86,26 @@ namespace anyhelp.Service.Models
                 {
                     return Convert.FromBase64String(input.Replace('-', '+').Replace('_', '/') + "==");
                 }
-                 catch (Exception ex1)
-            {
-                ExceptionLogging.SendErrorToText(ex1); }
+                catch (Exception ex1)
+                {
+                    ExceptionLogging.SendErrorToText(ex1);
+                }
 
                 return null;
             }
         }
 
 
-        public static string GenerateToken(string mobilenumber)
+        public static string GenerateToken(string mobilenumber,bool Isseller)
         {
 
             AppConfiguration appsetting = new AppConfiguration();
-           
-            string securityKey= appsetting.securityKey;
+
+            string securityKey = appsetting.securityKey;
             string validIssuer = appsetting.validIssuer;
             string validAudience = appsetting.validAudience;
             int expiryInMinutes = appsetting.expiryInMinutes;
-            
+
             var mySecret = securityKey;
             var mySecurityKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(mySecret));
 
@@ -128,14 +117,14 @@ namespace anyhelp.Service.Models
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim("mobilenumber", mobilenumber.ToString()),
-                   
-                    
+                    new Claim("phoneno", mobilenumber.ToString()),
+                      new Claim("isseller", Isseller.ToString()),
+
                 }),
                 Expires = DateTime.UtcNow.AddMinutes(expiryInMinutes),
                 Issuer = myIssuer,
                 Audience = myAudience,
-                
+
                 SigningCredentials = new SigningCredentials(mySecurityKey, SecurityAlgorithms.HmacSha256Signature)
             };
 
@@ -144,8 +133,8 @@ namespace anyhelp.Service.Models
         }
 
 
-        
-        public static async Task<bool>  ValidateCurrentToken(string token)
+
+        public static async Task<bool> ValidateCurrentToken(string token)
         {
             try
             {
@@ -216,7 +205,8 @@ namespace anyhelp.Service.Models
             catch (Exception ex)
             {
                 ExceptionLogging.SendErrorToText(ex);
-                return false; }
+                return false;
+            }
         }
 
         public static string Encrypt(string text)
@@ -225,7 +215,7 @@ namespace anyhelp.Service.Models
             {
                 AppConfiguration appConfiguration = new AppConfiguration();
                 string textToEncrypt = text;
-               string ToReturn = "";              
+                string ToReturn = "";
                 byte[] secretkeyByte = { };
                 secretkeyByte = System.Text.Encoding.UTF8.GetBytes(appConfiguration.privatekey);
                 byte[] publickeybyte = { };
@@ -257,7 +247,7 @@ namespace anyhelp.Service.Models
                 AppConfiguration appConfiguration = new AppConfiguration();
                 string textToDecrypt = text;
                 string ToReturn = "";
-              
+
                 byte[] privatekeyByte = { };
                 privatekeyByte = System.Text.Encoding.UTF8.GetBytes(appConfiguration.privatekey);
                 byte[] publickeybyte = { };
@@ -309,7 +299,7 @@ namespace anyhelp.Service.Models
             {
                 return "Send failure!";
             }
-           
+
         }
 
         //public static  string getadminimage(string image)
@@ -413,8 +403,8 @@ namespace anyhelp.Service.Models
     }
 
 
-   
-    
 
-   
+
+
+
 }

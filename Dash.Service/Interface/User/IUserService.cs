@@ -10,8 +10,8 @@ namespace anyhelp.Service.Interface
 {
     public interface IUserService 
     {
-        Task<ExecutionResult<List<TblBuyerinquiry>>> GetAllInquiry();
-        Task<ExecutionResult<List<TblBuyerinquiry>>> GetAllInquiry1();
+        Task<ExecutionResult<NotificationModel>> GetAllNotification(string id_token);
+        Task<ExecutionResult<List<Category>>> GetSearchCaltegory(string Search);
         Task<ExecutionResult<string>> CreateToken(UserCreateTokenModel Model);
         //ServiceResponseGeneric<List<UserModel>> GetUser();
         //ServiceResponseGeneric<bool> UpdateUserStatus(long userid);

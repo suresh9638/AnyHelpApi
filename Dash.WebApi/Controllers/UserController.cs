@@ -39,19 +39,19 @@ namespace anyhelp.WebApi.Controllers
         //}
 
         [HttpGet]
-        [Route("GetAllInquiry")]
-        public async Task<IActionResult> GetAllInquiry()
+        [Route("GetAllNotification")]
+        public async Task<IActionResult> GetAllNotification(string id_token)
         {
 
-            return GenerateResponse(await _userService.GetAllInquiry());
+            return GenerateResponse(await _userService.GetAllNotification(id_token));
 
         }
         [HttpGet]
-        [Route("GetAllInquiry1")]
-        public async Task<IActionResult> GetAllInquiry1()
+        [Route("GetSearchCaltegory")]
+        public async Task<IActionResult> GetSearchCaltegory(string Search)
         {
 
-            return GenerateResponse(await _userService.GetAllInquiry1());
+            return GenerateResponse(await _userService.GetSearchCaltegory(Search));
 
         }
         [HttpPost]

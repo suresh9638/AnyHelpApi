@@ -9,10 +9,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Models\User\UserServiceModel.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Auth0.AuthenticationApi" Version="7.8.1" />
     <PackageReference Include="AutoMapper" Version="10.1.1" />
     <PackageReference Include="Dapper" Version="2.0.90" />

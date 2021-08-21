@@ -8,7 +8,7 @@ namespace anyhelp.Service.Models
     public class UserCreateTokenModel
     {
       
-        public string mobileNumber { get; set; }
+        public string phoneno { get; set; }
         public string sessionId { get; set; }
         public string otp { get; set; }
        
