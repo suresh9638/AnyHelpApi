@@ -23,7 +23,8 @@ namespace anyhelp.Service.Models
             public string BuyernotificationCategoryName { get; set; }
             public string SellerName { get; set; }
             public string SellerPhone { get; set; }
-      }
+        public long UnreadCount { get; set; }
+    }
 
 
 

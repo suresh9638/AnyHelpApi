@@ -62,5 +62,31 @@ namespace anyhelp.WebApi.Controllers
             return GenerateResponse(await _userService.CreateToken(Model));
 
         }
+        [HttpPost]
+        [Route("CreateInquiry")]
+        public async Task<IActionResult> CreateInquiry(CreateInquiryModel model)
+        {
+
+            return GenerateResponse(await _userService.CreateInquiry(model));
+
+        }
+
+        [HttpGet]
+        [Route("SetReadNotification")]
+        public async Task<IActionResult> SetReadNotification(long Notificationid, bool Isserivce)
+        {
+
+            return GenerateResponse(await _userService.SetReadNotification(Notificationid, Isserivce));
+
+        }
+
+        [HttpGet]
+        [Route("test")]
+        public async Task<IActionResult> test()
+        {
+
+            return GenerateResponse(await _userService.test());
+
+        }
     }
 }

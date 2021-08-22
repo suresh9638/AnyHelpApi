@@ -33,4 +33,18 @@ namespace anyhelp.Service.Models
        
     }
 
+    public class CreateInquiryModel
+    {
+        public string Id_Token { get; set; }
+        public long CategoryId { get; set; }
+        public string Fullname { get; set; }
+        public string latitude { get; set; }
+        public string longitude { get; set; }
+    }
+    public class NotificationCount
+    {
+        public string Phoneno { get; set; }
+        public long Count { get; set; }
+
+    }
 }

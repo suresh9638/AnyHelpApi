@@ -14,7 +14,7 @@ namespace NET5SignalR.Models
             _hub = hub;
         }
 
-        public async Task SendNotification(NotificationSignalR notificationSignalR)
+        public async Task SendNotification(NotificationCount notificationSignalR)
         {
 
             await _hub.Clients.All.SendAsync("OnNotification", notificationSignalR);

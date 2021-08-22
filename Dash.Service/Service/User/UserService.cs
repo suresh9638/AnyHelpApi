@@ -177,8 +177,100 @@ namespace anyhelp.Service.Service
 
             });
         }
+        public async Task<ExecutionResult<bool>> CreateInquiry(CreateInquiryModel model)
+        {
+            return new ExecutionResult<bool>(() =>
+            {
+                string id_token = model.Id_Token;
+                if (!string.IsNullOrEmpty(id_token))
+                {
+                    string encodedate = "";
+                    if (id_token.Split('.').Length > 1)
+                    {
+                        encodedate = coreclass.Base64Decode(id_token.Split('.')[1]);
 
-        
+                        TokenDetails tokenDetails = new TokenDetails();
+
+                        tokenDetails = JsonConvert.DeserializeObject<TokenDetails>(encodedate);
+
+                        if (!string.IsNullOrEmpty(tokenDetails.phoneno))
+                        {
+                            var dictionaryParameters = new Dictionary<string, object>
+            {
+              { "@phoneno",tokenDetails.phoneno},
+               { "@categoryid", model.CategoryId },
+               { "@fullname", model.Fullname },
+                { "@latitude", model.latitude },
+                { "@longitude", model.longitude },
+                { "@datetime", convertdatetime(DateTime.Now) }
+                }
+                                ;
+                            var parameters = new DynamicParameters(dictionaryParameters);
+
+
+                            var NotificationCountList = _sqlConnectionFactory.Value.CreateConnection().Query<NotificationCount>("Sp_CreateInquiry", parameters, commandType: CommandType.StoredProcedure).ToList();
+
+
+                            NotificationCountList.ForEach(a=> {
+                                a.Phoneno = coreclass.Decrypt(a.Phoneno);
+                            });
+
+                            foreach(var NotificationMode in NotificationCountList)
+                            {
+                                NotificationHub notificationHub = new NotificationHub(_notificationHub);
+                                 notificationHub.SendNotification(NotificationMode).GetAwaiter();
+
+                            }
+                        }
+                    }
+                }
+            
+
+                return true;
+
+
+            });
+        }
+
+        public async Task<ExecutionResult<bool>> SetReadNotification(long Notificationid,bool Isserivce)
+        {
+            return new ExecutionResult<bool>(() =>
+            {
+
+                var dictionaryParameters = new Dictionary<string, object>
+            {
+              { "@Notificationid", Notificationid }, { "@Isserivce", Isserivce }}
+                            ;
+                var parameters = new DynamicParameters(dictionaryParameters);
+
+
+               _sqlConnectionFactory.Value.CreateConnection().Execute("Sp_SetReadNotification", parameters, commandType: CommandType.StoredProcedure);
+
+
+
+                return true;
+
+
+            });
+        }
+        public async Task<ExecutionResult<DateTime>> test()
+        {
+            return new ExecutionResult<DateTime>(() =>
+            {
+                DateTime datetime = new DateTime();
+
+                DateTime currentTime = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+                return currentTime;
+
+
+            });
+        }
+
+        public DateTime convertdatetime(DateTime datetime)
+        {
+           return TimeZoneInfo.ConvertTime(datetime, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+        }
+       
         //public async Task<ExecutionResult<AdminUserModel>> AdminLogin(string emailId, string password)
         //{
         //    try
