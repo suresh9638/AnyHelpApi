@@ -87,12 +87,12 @@ namespace anyhelp.WebApi
             {
                 options.AddPolicy("EnableCORS", builder =>
                 {
-                    builder.AllowAnyOrigin()
-                       .AllowAnyHeader()
-                       .AllowAnyMethod();
+                    builder.AllowAnyMethod()
+                .AllowAnyHeader()
+                .AllowAnyOrigin(); 
                 });
             });
-
+           
             services.AddControllersWithViews();
 
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -121,6 +121,8 @@ namespace anyhelp.WebApi
             StructureMapper.InitializeStructureMapper(services);
            
             services.AddSignalR();
+            string[] Parameters = { "http://anyhelp.in.net", "http://api.anyhelp.in.net", "https://anyhelp.in.net", "https://api.anyhelp.in.net", "https://localhost:4200", "http://localhost:4200", "http://localhost:44327", "https://localhost:44327" };
+            services.AddCors(o => o.AddPolicy("CorsPolicy", builder => { builder.AllowAnyMethod().AllowAnyHeader().WithOrigins(Parameters); }));
 
         }
 
@@ -128,15 +130,16 @@ namespace anyhelp.WebApi
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             AppConfiguration appConfiguration = new AppConfiguration();
-            string[] Parameters = { "http://anyhelp.in.net", "http://api.anyhelp.in.net" };
+            string[] Parameters = { "http://anyhelp.in.net", "http://api.anyhelp.in.net", "https://anyhelp.in.net", "https://api.anyhelp.in.net", "https://localhost:4200", "http://localhost:4200", "http://localhost:44327", "https://localhost:44327" };
             app.UseCors(x => x
             .WithOrigins(Parameters)
-                    .AllowAnyHeader()
                     .AllowAnyMethod()
-                    .AllowCredentials());
+                .AllowAnyHeader()
+                .AllowAnyOrigin());                    ;
             app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseCors("CorsPolicy");
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
