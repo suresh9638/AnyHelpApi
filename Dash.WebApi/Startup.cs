@@ -128,8 +128,9 @@ namespace anyhelp.WebApi
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             AppConfiguration appConfiguration = new AppConfiguration();
+            string[] Parameters = { "http://anyhelp.in.net", "http://api.anyhelp.in.net" };
             app.UseCors(x => x
-            .WithOrigins(appConfiguration.PortalUrl)
+            .WithOrigins(Parameters)
                     .AllowAnyHeader()
                     .AllowAnyMethod()
                     .AllowCredentials());

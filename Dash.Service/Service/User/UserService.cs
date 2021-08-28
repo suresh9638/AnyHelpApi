@@ -253,14 +253,14 @@ namespace anyhelp.Service.Service
 
             });
         }
-        public async Task<ExecutionResult<DateTime>> test()
+        public async Task<ExecutionResult<bool>> test(string PhoneNo,long Count)
         {
-            return new ExecutionResult<DateTime>(() =>
+            return new ExecutionResult<bool>(() =>
             {
-                DateTime datetime = new DateTime();
+                NotificationHub notificationHub = new NotificationHub(_notificationHub);
 
-                DateTime currentTime = TimeZoneInfo.ConvertTime(DateTime.Now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
-                return currentTime;
+                notificationHub.SendNotification(new NotificationCount() { Phoneno= PhoneNo ,Count= Count }).GetAwaiter();
+                return true;
 
 
             });

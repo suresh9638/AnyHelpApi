@@ -82,10 +82,10 @@ namespace anyhelp.WebApi.Controllers
 
         [HttpGet]
         [Route("test")]
-        public async Task<IActionResult> test()
+        public async Task<IActionResult> test(string PhoneNo, long Count)
         {
 
-            return GenerateResponse(await _userService.test());
+            return GenerateResponse(await _userService.test(PhoneNo, Count));
 
         }
     }

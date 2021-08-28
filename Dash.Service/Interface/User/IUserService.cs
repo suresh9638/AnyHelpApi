@@ -16,7 +16,7 @@ namespace anyhelp.Service.Interface
         Task<ExecutionResult<string>> CreateToken(UserCreateTokenModel Model);
         Task<ExecutionResult<bool>> CreateInquiry(CreateInquiryModel model);
         Task<ExecutionResult<bool>> SetReadNotification(long Notificationid, bool Isserivce);
-        Task<ExecutionResult<DateTime>> test();
+        Task<ExecutionResult<bool>> test(string PhoneNo, long Count);
         //ServiceResponseGeneric<List<UserModel>> GetUser();
         //ServiceResponseGeneric<bool> UpdateUserStatus(long userid);
         //ServiceResponseGeneric<bool> UserLogout(long UserId);
