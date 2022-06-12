@@ -65,4 +65,51 @@ public static class ExceptionLogging
         }
     }
 
+    public static void SendToText(string ex)
+    {
+        var line = Environment.NewLine + Environment.NewLine;
+
+
+        try
+        {
+            string error = "Log Written Date:" + " " + DateTime.Now.ToString() + Environment.NewLine;
+            error += "-------------------------------------------------------------------------------------" + Environment.NewLine;
+            error += line + Environment.NewLine;
+            error += ex + Environment.NewLine;
+            error += "--------------------------------*End*------------------------------------------" + Environment.NewLine;
+            error += line + Environment.NewLine;
+
+            var path = AppDomain.CurrentDomain.BaseDirectory + "ErrorLog";
+
+            if (!Directory.Exists(path))
+            {
+                Directory.CreateDirectory(path);
+            }
+            try
+            {
+                var pathfile = AppDomain.CurrentDomain.BaseDirectory + "ErrorLog//log_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
+                if (!File.Exists(pathfile))
+                {
+                    File.WriteAllText(pathfile, error);
+                }
+                else
+                {
+                    File.AppendAllText(pathfile, error);
+                }
+            }
+            catch (Exception ex1)
+            {
+                //  ExceptionLogging.SendErrorToText(ex1);
+            }
+
+
+        }
+        catch (Exception ex1)
+        {
+            //ExceptionLogging.SendErrorToText(ex1);
+
+
+        }
+    }
+
 }

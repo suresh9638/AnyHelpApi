@@ -27,7 +27,12 @@ namespace anyhelp.Data.DataContext
         public string publickey { get; set; }
         public string privatekey { get; set; }
 
+        public string MERCHANT_KEY { get; set; }
 
+        public string SALT { get; set; }    
+        public string PAYU_BASE_URL { get; set; }
+        public string PAYU_VERIFY_URL { get; set; }
+        public string hashSequence { get; set; }
 
         public AppConfiguration()
         {
@@ -57,6 +62,12 @@ namespace anyhelp.Data.DataContext
             SmtpHost = root.GetSection("AppSettings:SmtpSettings:SmtpHost").Value;
             SmtpPort = root.GetSection("AppSettings:SmtpSettings:SmtpPort").Value;
             enableSsl = root.GetSection("AppSettings:SmtpSettings:enableSsl").Value;
+
+            MERCHANT_KEY = root.GetSection("AppSettings:PayuSetting:MERCHANT_KEY").Value;
+            SALT = root.GetSection("AppSettings:PayuSetting:SALT").Value;
+            PAYU_BASE_URL = root.GetSection("AppSettings:PayuSetting:PAYU_BASE_URL").Value;
+            PAYU_VERIFY_URL = root.GetSection("AppSettings:PayuSetting:PAYU_VERIFY_URL").Value;
+            hashSequence = root.GetSection("AppSettings:PayuSetting:hashSequence").Value;        
 
         }
 
