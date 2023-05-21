@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using anyhelp.Data.DataContext;
 using System.Net;
 using System.Security.Cryptography;
+using anyhelp.Service.Models;
 
 namespace anyhelp.WebApi.Controllers
 {
@@ -181,7 +182,7 @@ namespace anyhelp.WebApi.Controllers
             //  ////Reply back a 200 code
             //  //return Ok();
             ////  VerifyTask(ipnContext);
-            return Ok();
+            return RedirectToAction("index", "IPNV");
         }
 
         //This function is used to double check payment
@@ -290,5 +291,201 @@ namespace anyhelp.WebApi.Controllers
             return hex;
 
         }
+
+        [HttpPost("GetHtml")]
+        public async Task<IActionResult> GetHtml(PaymentRequestModel model)
+        {
+            string htmlval = "";
+            AppConfiguration appC=new AppConfiguration();
+
+            try
+            {
+                string txnid1=string.Empty;
+                string[] hashVarsSeq;
+                string hash_string = string.Empty;
+
+
+              
+                    Random rnd = new Random();
+                    string strHash = Generatehash512(rnd.ToString() + DateTime.Now);
+                    txnid1 = strHash.ToString().Substring(0, 20);
+
+
+
+
+                string firstname = "suresh";
+                string emailid = model.EmailId;
+                string productInfo = "AnyHelp Product";
+
+                hashVarsSeq = appC.hashSequence.Split('|'); // spliting hash sequence from config
+                        hash_string = "";
+                        foreach (string hash_var in hashVarsSeq)
+                        {
+                            if (hash_var == "key")
+                            {
+                                hash_string = hash_string + appC.MERCHANT_KEY;
+                                hash_string = hash_string + '|';
+                            }
+                            else if (hash_var == "txnid")
+                            {
+                                hash_string = hash_string + txnid1;
+                                hash_string = hash_string + '|';
+                            }
+                            else if (hash_var == "amount")
+                            {
+                                hash_string = hash_string + Convert.ToDecimal(model.Amount).ToString("g29");
+                                hash_string = hash_string + '|';
+                            }
+                            else if (hash_var == "productinfo")
+                            {
+                                hash_string = hash_string + productInfo;
+                                hash_string = hash_string + '|';
+                            }
+                            else if (hash_var == "firstname")
+                            {
+                                hash_string = hash_string + firstname;
+                                hash_string = hash_string + '|';
+                            }
+                            else if (hash_var == "email")
+                            {
+                                hash_string = hash_string + emailid;
+                                hash_string = hash_string + '|';
+                            }
+                            else if (hash_var == "udf5")
+                            {
+                                hash_string = hash_string + "PayUBiz_ASP.NET_Kit";
+                                hash_string = hash_string + '|';
+                            }
+                            else
+                            {
+
+                                hash_string = hash_string + "";// isset if else
+                                hash_string = hash_string + '|';
+                            }
+                        }
+
+                        hash_string += appC.SALT;// appending SALT
+
+                ExceptionLogging.SendToText(hash_string);
+
+                     string   hash1 = Generatehash512(hash_string).ToLower();         //generating hash
+                     string   action1 = appC.PAYU_BASE_URL + "/_payment";// setting URL
+
+                   
+
+                
+
+                
+
+                if (!string.IsNullOrEmpty(hash1))
+                {
+                   
+
+                    System.Collections.Hashtable data = new System.Collections.Hashtable(); // adding values in gash table for data post
+                    //data.Add("hash", hash1);
+                    //data.Add("txnid", txnid1);
+                    //data.Add("key", appC.MERCHANT_KEY);
+                    //string AmountForm = Convert.ToDecimal(model.Amount).ToString("g29");// eliminating trailing zeros
+
+                    //data.Add("amount", AmountForm);
+                    //data.Add("firstname", firstname);
+                    //data.Add("email", emailid);
+                    //data.Add("phone", coreclass.GetPhoneOriginal(model.Id_Token));
+                    //data.Add("productinfo", productInfo);
+                    //data.Add("surl", appC.APIUrl+ "IPNV/Index?id=success");
+                    //data.Add("furl", appC.APIUrl + "IPNV/Index?id=fail");                   
+                    //data.Add("curl", appC.APIUrl + "IPNV/Index?id=cancel");
+                    //data.Add("udf1", "");
+                    //data.Add("udf2", "");
+                    //data.Add("udf3", "");
+                    //data.Add("udf4", "");
+                    //data.Add("udf5", "PayUBiz_ASP.NET_Kit");
+                    //data.Add("udf6", "");
+                    //data.Add("udf7", "");
+                    //data.Add("udf8", "");
+                    //data.Add("udf9", "");
+                    //data.Add("udf10", "");
+                    //data.Add("pg", "");
+
+                    data.Add("hash", hash1);
+                    data.Add("txnid", txnid1);
+                    data.Add("key", appC.MERCHANT_KEY);
+                    string AmountForm = Convert.ToDecimal(model.Amount).ToString("g29");// eliminating trailing zeros
+                   
+                    data.Add("amount", AmountForm);
+                    data.Add("firstname", firstname);
+                    data.Add("email", emailid);
+                    data.Add("phone", coreclass.GetPhoneOriginal(model.Id_Token));
+                    data.Add("productinfo", productInfo);
+                    data.Add("surl", appC.APIUrl + "api/IPN/Receive");
+                    data.Add("furl", appC.APIUrl + "IPNV/Index?id=fail");
+                    data.Add("lastname", "");
+                    data.Add("curl", appC.APIUrl + "IPNV/Index?id=cancel");
+                    data.Add("address1", "");
+                    data.Add("address2", "");
+                    data.Add("city", "");
+                    data.Add("state", "");
+                    data.Add("country", "");
+                    data.Add("zipcode", "");
+                    data.Add("udf1", "");
+                    data.Add("udf2", "");
+                    data.Add("udf3", "");
+                    data.Add("udf4", "");
+                    data.Add("udf5", "PayUBiz_ASP.NET_Kit");
+                    data.Add("pg", "");
+
+
+
+                    htmlval = System.Net.WebUtility.HtmlEncode( PreparePOSTForm(action1, data));
+                }
+
+                
+
+            }
+
+            catch (Exception ex)
+            {
+               
+
+            }
+
+
+
+
+            return Ok(htmlval);
+        }
+        [NonAction]
+        private string PreparePOSTForm(string url, System.Collections.Hashtable data)      // post form
+        {
+            //Set a name for the form
+            string formID = "PostForm";
+            //Build the form using the specified data to be posted.
+            StringBuilder strForm = new StringBuilder();
+            strForm.Append("<form id=\"" + formID + "\" name=\"" +
+                           formID + "\" action=\"" + url +
+                           "\" method=\"POST\">");
+
+            foreach (System.Collections.DictionaryEntry key in data)
+            {
+
+                strForm.Append("<input type=\"hidden\" name=\"" + key.Key +
+                               "\" value=\"" + key.Value + "\">");
+            }
+
+
+            strForm.Append("</form>");
+            //Build the JavaScript which will do the Posting operation.
+            StringBuilder strScript = new StringBuilder();
+            strScript.Append("<script language='javascript'>");
+            strScript.Append("var v" + formID + " = document." +
+                             formID + ";");
+            strScript.Append("v" + formID + ".submit();");
+            strScript.Append("</script>");
+            //Return the form and the script concatenated.
+            //(The order is important, Form then JavaScript)
+            return strForm.ToString() + strScript.ToString();
+        }
+
+
     }
 }

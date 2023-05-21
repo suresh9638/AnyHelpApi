@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net.Mail;
 using System.Net;
+using Newtonsoft.Json;
 
 namespace anyhelp.Service.Models
 {
@@ -302,6 +303,7 @@ namespace anyhelp.Service.Models
 
         }
 
+
         //public static  string getadminimage(string image)
         //{
         //    string img ="";
@@ -400,6 +402,32 @@ namespace anyhelp.Service.Models
         //    }
 
         //}
+
+        public static string GetPhoneOriginal(string id_token)
+        {
+            string phoneOriginal = string.Empty;
+
+            if (!string.IsNullOrEmpty(id_token))
+            {
+                string encodedate = "";
+                if (id_token.Split('.').Length > 1)
+                {
+                    encodedate = coreclass.Base64Decode(id_token.Split('.')[1]);
+
+                    TokenDetails tokenDetails = new TokenDetails();
+
+                    tokenDetails = JsonConvert.DeserializeObject<TokenDetails>(encodedate);
+
+                    if (!string.IsNullOrEmpty(tokenDetails.phoneno))
+                    {
+                        phoneOriginal = coreclass.Decrypt(tokenDetails.phoneno);
+                    }
+                }
+            }
+            return phoneOriginal;
+        }
+        
+    
     }
 
 

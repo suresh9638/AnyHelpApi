@@ -1,6 +1,7 @@
 ﻿using anyhelp.Data.Entities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection.Metadata;
 using System.Text;
 
@@ -46,5 +47,13 @@ namespace anyhelp.Service.Models
         public string Phoneno { get; set; }
         public long Count { get; set; }
 
+    }
+    public class PaymentRequestModel
+    {
+        [Required(ErrorMessage = "Id Token is required.")]
+        public string Id_Token { get; set; }
+        public string EmailId { get; set; }
+        [Required(ErrorMessage = "Amount is required.")]
+        public string Amount { get; set; }
     }
 }
